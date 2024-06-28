@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0034)https://www.fischl.de/dcdccontrol/ -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Output voltage control of DC/DC converters - fischl.de</title>
+        <link rel="stylesheet" type="text/css" href="./Output voltage control of DC_DC converters - fischl.de_files/style.css">
+        <meta name="keywords" content="DC/DC converter, voltage converter, output voltage control">
+        <meta name="description" content="Output voltage control of DC/DC converters">
+        
+
+        <style>
+            input {
+                width: 50px;
+            }
+            #calcresult {
+                border: 2px solid #aaa;
+                padding: 20px;
+                display: none;
+            }
+            button {
+                margin: 15px 0;
+            }
+	</style>
+
+        <script>
+	    function calculate() {
+                var Uf = parseFloat(document.getElementById("Uf").value);
+                var R3 = parseFloat(document.getElementById("R3").value);
+                var Uo1 = parseFloat(document.getElementById("Uo1").value);
+                var Uo2 = parseFloat(document.getElementById("Uo2").value);
+                var Uc1 = parseFloat(document.getElementById("Uc1").value);
+                var Uc2 = parseFloat(document.getElementById("Uc2").value);
+
+                var R1 = R3 * ((Uo1 - Uf) * (Uc2 - Uf) - (Uc1 - Uf) * (Uo2 - Uf)) / (Uf * (Uc2 - Uc1));
+                var R2 = (Uc1 - Uf) / (Uf / R3 - (Uo1 - Uf) / R1);
+
+                var I2max = (Uc2 - Uf) / R2;
+                var I2min = (Uc1 - Uf) / R2;
+
+                document.getElementById("calcresult").innerHTML = "R1 = " + R1.toFixed(2) +  " Ohm<br/>R2 = " + R2.toFixed(2) + " Ohm<br/><br/>I2min = " + I2min.toFixed(8) + " A<br/>I2max = " + I2max.toFixed(8) + " A";
+                document.getElementById("calcresult").style.display = "block";
+            }
+
+            window.onload = function () {
+                document.getElementById("calculate").onclick = calculate;
+            };
+	</script>
+
+
+    <style>undefined</style><link rel="preconnect" href="https://fonts.googleapis.com/" crossorigin="use-credentials"><link rel="preconnect" href="https://fonts.gstatic.com/"><link rel="stylesheet" href="./Output voltage control of DC_DC converters - fischl.de_files/css2"></head>
+    <body data-new-gr-c-s-check-loaded="14.1184.0" data-gr-ext-installed="">
+
+        <div id="header">
+            <div id="navigation">
+                <a href="https://www.fischl.de/">Home</a> | <a href="https://www.fischl.de/projects/">Projects</a> | <a href="https://www.fischl.de/contact.html">Contact</a>
+            </div>
+            <div id="logo">
+                Thomas Fischl
+            </div>
+        </div>
+
+        <div id="content">
+
+
+            <h1>Output voltage control of DC/DC converters</h1>
+            <i>Some applications needs to control the output voltage of a dc/dc converter instead using a fixed output voltage.
+            For example battery chargers has to adjust the output voltage to the current battery level. This page shows how to add such a control function to a buck converter circuit.</i>
+
+            <h2>Control output via external voltage source</h2>
+            Typically a voltage divider is used in dc converters to adjust the output voltage to the needed feedback voltage. To control the feedback signal by an external voltage source, a third resistor is added to the circuit.<br>
+            A cheap LM2596 converter board is used (pin 4 of LM2596 is the feedback pin):<br>
+
+            <img src="./Output voltage control of DC_DC converters - fischl.de_files/lm2596_board.jpg" alt="LM2596 board">
+            <img src="./Output voltage control of DC_DC converters - fischl.de_files/lm2596_board_bot.jpg" alt="LM2596 board bottom view"><br>
+
+            <h2>Calculate resistor network</h2>
+            If there is a fixed resistor to ground and a poti to control the feedback voltage, the additional "control"-resistor can be calculated:<br>
+            <br>
+            <img src="./Output voltage control of DC_DC converters - fischl.de_files/dccontrol_resistors.png" alt="dc/dc converter resistor network"><br>
+            <br>
+            <form>
+              Feedback voltage: <input type="text" id="Uf" value="1.23">V<br>
+              Resistor R3: <input type="text" id="R3" value="360">Ohm<br>
+              Output voltage range: <input type="text" id="Uo2" value="6">V ... <input type="text" id="Uo1" value="12">V<br>
+              Control voltage range: <input type="text" id="Uc1" value="0">V ... <input type="text" id="Uc2" value="5">V<br>
+              <button type="button" id="calculate">Calculate</button>
+            </form>
+            <div id="calcresult" style="display: block;">R1 = 3232.02 Ohm<br>R2 = 1066.57 Ohm<br><br>I2min = -0.00115323 A<br>I2max = 0.00194081 A</div>
+
+
+            <h2>Trim poti for wanted output voltage range</h2>
+            If you use a dc/dc converter board with potentiometer, please note that calibrating the poti with a multimeter is not possible because the resistance cannot be measured in circuit.<br>
+            <br>
+            Steps to set the upper voltage bound:
+            <ul>
+              <li>Set control voltage to 0V. Note: At 0V I2 is negative.</li>
+              <li>Add input voltage to converter board.</li>
+              <li>Measure output voltage with multimeter and trim the poti to get the required maximum output voltage.</li>
+            </ul>
+
+            <h2>Use DAC to control output voltage</h2>
+            Connect a DAC output via resistor (R2) to the feedback pin of the dc converter chip.
+            Here, a <img src="./Output voltage control of DC_DC converters - fischl.de_files/en.png" alt="en"> <a href="https://www.sparkfun.com/products/12918">MCP4725 Breakout Board</a> is used which is controlled via an
+            <img src="./Output voltage control of DC_DC converters - fischl.de_files/de.png" alt="de"> <a href="http://www.elv.de/usb-i2c-interface-komplettbausatz-inkl-gehaeuse-bearbeitet-und-bedruckt-usb-kabel-3-anschlusskabel.html">ELV USB-I2C-Interface</a>.
+            The output voltage of the DAC can be set through this interface with serial commands. Example to set 0V DAC voltage (-&gt; maximum output voltage on dc/dc converter):
+            <pre>SC0 00 00 P</pre>
+            Set maximum DAC voltage (-&gt; minimum output voltage on dc/dc converter):
+            <pre>SC0 0F FF P</pre>
+
+            <img src="./Output voltage control of DC_DC converters - fischl.de_files/dac_controlled_converter.jpg" alt="DAC controlled LM2596 converter board"><br>
+
+            <h2>Links</h2>
+            <img src="./Output voltage control of DC_DC converters - fischl.de_files/en.png" alt="en"> <a href="http://forum.arduino.cc/index.php?topic=133001.msg1000888#msg1000888">Arduino Forum - Control the voltage of a buck converter</a><br> 
+            <br>
+
+
+        </div>
+        <div id="footer"> © 1998 - 2024 Thomas Fischl · <a href="https://www.fischl.de/privacy.html">Privacy Policy</a> · <a href="https://www.fischl.de/contact.html">Imprint/Impressum</a> </div>
+    
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>

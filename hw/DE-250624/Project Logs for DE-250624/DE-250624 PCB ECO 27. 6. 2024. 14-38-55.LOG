@@ -1,0 +1,32 @@
+Added Component: Designator=S1(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Component: Designator=S2(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Component: Designator=S3(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Component: Designator=S4(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Component: Designator=S5(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Component: Designator=S6(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Component: Designator=S7(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Component: Designator=S8(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Pin To Net: NetName=NetS1_1 Pin=S1-1
+Added Pin To Net: NetName=NetS2_1 Pin=S2-1
+Added Pin To Net: NetName=NetS3_1 Pin=S3-1
+Added Pin To Net: NetName=NetS4_1 Pin=S4-1
+Added Pin To Net: NetName=NetS5_1 Pin=S5-1
+Added Pin To Net: NetName=NetS6_1 Pin=S6-1
+Added Pin To Net: NetName=NetS7_1 Pin=S7-1
+Added Pin To Net: NetName=NetS8_1 Pin=S8-1
+Added Member To Class: ClassName=DE-250624 Member=Component S1 SENS_SPEED_1
+Added Member To Class: ClassName=DE-250624 Member=Component S2 SENS_SPEED_2
+Added Member To Class: ClassName=DE-250624 Member=Component S3 SENS_SPEED_3
+Added Member To Class: ClassName=DE-250624 Member=Component S4 SENS_SPEED_4
+Added Member To Class: ClassName=DE-250624 Member=Component S5 SENS_GUARD
+Added Member To Class: ClassName=DE-250624 Member=Component S6 SENS_ON_OFF
+Added Member To Class: ClassName=DE-250624 Member=Component S7 SENS_DIR_IN
+Added Member To Class: ClassName=DE-250624 Member=Component S8 SENS_DIR_OUT

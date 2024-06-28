@@ -1,0 +1,3 @@
+Removed Member From Class: ClassName=DE-250624 Member=S8
+Change Component Comment : Designator=S7 Old Comment=SENS_DIR_IN New Comment=SENS_DIR
+Added Pin To Net: NetName=VSS Pin=U2-9

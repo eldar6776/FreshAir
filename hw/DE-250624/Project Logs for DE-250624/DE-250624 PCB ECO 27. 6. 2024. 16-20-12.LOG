@@ -1,0 +1,11 @@
+Change Component Comment : Designator=D2 Old Comment=LED_DIR_IN New Comment=LED_HREC
+Change Component Comment : Designator=D3 Old Comment=LED_DIR_OUT New Comment=LED_VENT
+Change Component Comment : Designator=S7 Old Comment=SENS_DIR New Comment=SENS_MODE
+Added Component: Designator=S5(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Pin To Net: NetName=NetS5_1 Pin=S5-1
+Change Net Name : Old Net Name=LED_DIR_IN New Net Name=LED_HREC
+Change Net Name : Old Net Name=LED_DIR_OUT New Net Name=LED_VENT
+Change Net Name : Old Net Name=VENT_IN New Net Name=VENT_1
+Change Net Name : Old Net Name=VENT_OUT New Net Name=VENT_2
+Added Member To Class: ClassName=DE-250624 Member=Component S5 SENS_GUARD
