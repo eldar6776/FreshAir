@@ -1,0 +1,6 @@
+Added Component: Designator=FD1(Fiducial)
+Add component. Clean all parameters for all variants
+Added Component: Designator=FD2(Fiducial)
+Add component. Clean all parameters for all variants
+Added Member To Class: ClassName=DE-250624 Member=Component FD1 Fiducial
+Added Member To Class: ClassName=DE-250624 Member=Component FD2 Fiducial
