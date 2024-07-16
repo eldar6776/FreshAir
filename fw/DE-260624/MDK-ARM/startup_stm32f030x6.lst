@@ -341,7 +341,7 @@ ARM Macro Assembler    Page 6
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interw
 ork --depend=de-260624\startup_stm32f030x6.d -ode-260624\startup_stm32f030x6.o 
--I.\RTE\_DE-260624 -IG:\Repository\Packs\ARM\CMSIS\6.0.0\CMSIS\Core\Include -IG
+-I.\RTE\_DE-260624 -IG:\Repository\Packs\ARM\CMSIS\6.1.0\CMSIS\Core\Include -IG
 :\Repository\Packs\Keil\STM32F0xx_DFP\2.1.1\Drivers\CMSIS\Device\ST\STM32F0xx\I
 nclude --predefine="__UVISION_VERSION SETA 530" --predefine="_RTE_ SETA 1" --pr
 edefine="STM32F030x6 SETA 1" --predefine="_RTE_ SETA 1" --list=startup_stm32f03

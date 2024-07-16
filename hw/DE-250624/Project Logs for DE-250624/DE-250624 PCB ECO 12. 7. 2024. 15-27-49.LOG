@@ -1,0 +1,7 @@
+Removed Pin From Net: NetName=NetC9_1 Pin=U5-1
+Added Component: Designator=S5(SENSOR_PAD)
+Add component. Clean all parameters for all variants
+Added Pin To Net: NetName=NetS5_1 Pin=S5-1
+Added Pin To Net: NetName=+3V3 Pin=U5-1
+Added Member To Class: ClassName=DE-250624 Member=Component S5 SENS_GUARD
+Added Member To Class: ClassName=DE-250624 Member=Component S6 SENS_ON_OFF

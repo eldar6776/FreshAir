@@ -48,7 +48,8 @@ IWDG_HandleTypeDef hiwdg;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-__IO uint32_t din_cap_sen;      // capacitive taster sensors state
+uint8_t cap_sen;      // capacitive taster sensors state
+uint32_t fan_speed;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,8 +76,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-    bool i;
-    uint8_t rd_reg, t;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -101,83 +101,97 @@ int main(void)
   MX_IWDG_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-    CAP1293_Init();
+  HAL_Delay(100);
+  CAP1293_Init();
+  HAL_Delay(100);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, fan_speed);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+      uint8_t tmp;
     /* USER CODE END WHILE */
     
     /* USER CODE BEGIN 3 */
-    if (IsCAP1293_Present())
-    {
-        rd_reg = CAP1293_ReadRegister(CAP1293_SENSOR_INPUT_STATUS_REG);		
-        din_cap_sen &= 0xF8U;
-        din_cap_sen |= (rd_reg & 0x07U);		
-        rd_reg = CAP1293_ReadRegister(CAP1293_MAIN_CONTROL_REG);
-        if(rd_reg & (1U<<0)) CAP1293_WriteRegister(CAP1293_MAIN_CONTROL_REG, 0);
-    }
+ 
+    cap_sen = CAP1293_ReadRegister(SENSOR_INPUT_STATUS);		
+	if(cap_sen & 0x01U) HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_SET);
+    else HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
+    if(cap_sen & 0x02U) HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_SET);
+    else HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
+    if(cap_sen & 0x04U) HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_SET);
+    else HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET); 
+    if(cap_sen & 0x08U) HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_SET);
+    else HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+    if(cap_sen & 0x20U) HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_SET);
+    else HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+    if(cap_sen & 0x40U) HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_SET);
+    else HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);  
+    tmp = CAP1293_ReadRegister(MAIN_CONTROL);
+    if(tmp & (1U<<0)) CAP1293_WriteRegister(MAIN_CONTROL, 0);
+
     
-    i = isTouched(1);
-    i = isAnyTouched();
-    i = isMTPTouched();
-    
-    if(i) t++;
+//    i = isTouched(1);
+//    i = isAnyTouched();
+//    i = isMTPTouched();
+//    
+//    if(i) t++;
 
-    enableSMBusTimeout();
-    disableSMBusTimeout();
-    setMaximumHoldDuration(10);
-    enableMaximumHoldDuration();
-    disableMaximumHoldDuration();
-    enableRFNoiseFilter();
-    disableRFNoiseFilter();
+//    enableSMBusTimeout();
+//    disableSMBusTimeout();
+//    setMaximumHoldDuration(10);
+//    enableMaximumHoldDuration();
+//    disableMaximumHoldDuration();
+//    enableRFNoiseFilter();
+//    disableRFNoiseFilter();
 
-    enableMultipleTouchLimit();
-    disableMultipleTouchLimit();
-    setMultipleTouchLimit(2);
-    enableMTPDetection();
-    disableMTPDetection();
-    setMTPDetectionMode(1);
-    setMTPPatternSpecificButtons(1, 1, 1, 1, 1, 1, 1, 1);
-    setMTPDetectionTreshold(1);
-    setMTPDetectionMinimalButtons(1);
-    enableMTPInterrupt();
-    disableMTPInterrupt();
+//    enableMultipleTouchLimit();
+//    disableMultipleTouchLimit();
+//    setMultipleTouchLimit(2);
+//    enableMTPDetection();
+//    disableMTPDetection();
+//    setMTPDetectionMode(1);
+//    setMTPPatternSpecificButtons(1, 1, 1, 1, 1, 1, 1, 1);
+//    setMTPDetectionTreshold(1);
+//    setMTPDetectionMinimalButtons(1);
+//    enableMTPInterrupt();
+//    disableMTPInterrupt();
 
-    disableInterruptRepeatRate();
-    enableInterruptRepeatRate();
-    disableInterruptOnRelease();
-    enableInterruptOnRelease();
-    calibrateTouch(1);
-    calibrateAll();
+//    disableInterruptRepeatRate();
+//    enableInterruptRepeatRate();
+//    disableInterruptOnRelease();
+//    enableInterruptOnRelease();
+//    calibrateTouch(1);
+//    calibrateAll();
 
-    // Clears INT bit
-    clearInterrupt();
+//    // Clears INT bit
+//    clearInterrupt();
 
-    //Signal guard
-    enableSignalGuard();
-    disableSignalGuard();
+//    //Signal guard
+//    enableSignalGuard();
+//    disableSignalGuard();
 
-    //Enable/disable specific buttons
-    enableSensing(1);
-    disableSensing(1);
-    i = isEnabledSensing(1);
+//    //Enable/disable specific buttons
+//    enableSensing(1);
+//    disableSensing(1);
+//    i = isEnabledSensing(1);
 
-    // Configures if interrupt triggers on touch
-    setInterruptDisabled();
-    setInterruptEnabled();
-    //bool isInterruptEnabled();
+//    // Configures if interrupt triggers on touch
+//    setInterruptDisabled();
+//    setInterruptEnabled();
+//    //bool isInterruptEnabled();
 
-    t = checkMainControl();
-    t += checkStatus();
-    if(t) t++;
-    
+//    t = checkMainControl();
+//    t += checkStatus();
+//    if(t) t++;
+//    
 
-    uint8_t r = getInputStatus();  //dodano VM
-    uint8_t t = getGeneralStatus();  //dodano VM
-    uint8_t z = getMainControl();  //dodano VM
+//    uint8_t r = getInputStatus();  //dodano VM
+//    uint8_t t = getGeneralStatus();  //dodano VM
+//    uint8_t z = getMainControl();  //dodano VM
   }
   /* USER CODE END 3 */
 }
@@ -282,7 +296,7 @@ static void MX_IWDG_Init(void)
 {
 
   /* USER CODE BEGIN IWDG_Init 0 */
-
+#ifdef USE_WATCHDOG
   /* USER CODE END IWDG_Init 0 */
 
   /* USER CODE BEGIN IWDG_Init 1 */
@@ -297,7 +311,7 @@ static void MX_IWDG_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN IWDG_Init 2 */
-
+#endif
   /* USER CODE END IWDG_Init 2 */
 
 }
@@ -322,9 +336,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
+  htim3.Init.Prescaler = 8;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
+  htim3.Init.Period = 1000;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -433,28 +447,24 @@ static void CAP1293_Init(void)
 	vendor_id = 0U;
 	product_id = 0U;
     
-	reg_wr[0] = CAP1293_PRODUCT_ID_REG;
+	reg_wr[0] = PROD_ID;
 	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_wr, 1U, DRV_TOUT) != HAL_OK)       Error_Handler();
 	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &product_id, 1U, DRV_TOUT) != HAL_OK)    Error_Handler();
-	reg_wr[0] = CAP1293_MANUFACTURER_ID_REG;
+	reg_wr[0] = MANUFACTURE_ID;
 	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_wr, 1U, DRV_TOUT) != HAL_OK)       Error_Handler();
 	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &vendor_id, 1U, DRV_TOUT) != HAL_OK)     Error_Handler();
-	
-	if((product_id == CAP1293_PRODUCT_ID) && (vendor_id == CAP1293_VENDOR_ID)) 
+
+	if((product_id == PROD_ID_VALUE_1298) && (vendor_id == CAP1293_VENDOR_ID)) 
 	{
-		CAP1293_SensorPresent();
-		CAP1293_WriteRegister(CAP1293_MULTIPLE_TOUCH_CONFIGURATION_REG, 0U);
-		CAP1293_WriteRegister(CAP1293_SENSOR_INPUT_ENABLE_REG, 0x05U);
-		CAP1293_WriteRegister(CAP1293_INTERRUPT_ENABLE_REG, 0x05U);
-        CAP1293_WriteRegister(CAP1293_CONFIGURATION_REG, 0x28U);
-		CAP1293_WriteRegister(CAP1293_CONFIGURATION_2_REG, 0x40U);
-		CAP1293_WriteRegister(CAP1293_REPEAT_RATE_ENABLE_REG, 0U);
-		CAP1293_WriteRegister(CAP1293_SINGLE_GUARD_ENABLE_REG, 0x05U);
-		CAP1293_WriteRegister(CAP1293_SENSITIVITY_CONTROL_REG, 0x0fU);
-		CAP1293_WriteRegister(CAP1293_CALIBRATION_SENSITIVITY_CONFIG_REG, 0U);
-		CAP1293_WriteRegister(CAP1293_MAIN_CONTROL_REG, 0U);
+	
+		CAP1293_WriteRegister(MULTIPLE_TOUCH_CONFIG, 0U);
+		CAP1293_WriteRegister(SENSOR_INPUT_ENABLE, 0x7FU);
+		CAP1293_WriteRegister(INTERRUPT_ENABLE, 0x7FU);
+		CAP1293_WriteRegister(REPEAT_RATE_ENABLE, 0U);
+		CAP1293_WriteRegister(SIGNAL_GUARD_ENABLE, 0xFFU);
+		CAP1293_WriteRegister(SENSITIVITY_CONTROL, 0x2FU);
+        calibrateAll();
 	}
-	else CAP1293_SensorNotPresent();
 }
 /**
   * @brief

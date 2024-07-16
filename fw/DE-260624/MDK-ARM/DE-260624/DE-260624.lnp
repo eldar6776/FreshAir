@@ -1,9 +1,9 @@
 --cpu Cortex-M0
 "de-260624\startup_stm32f030x6.o"
-"de-260624\main.o"
-"de-260624\stm32f0xx_it.o"
 "de-260624\stm32f0xx_hal_msp.o"
+"de-260624\stm32f0xx_it.o"
 "de-260624\cap129n.o"
+"de-260624\main.o"
 "de-260624\stm32f0xx_hal_i2c.o"
 "de-260624\stm32f0xx_hal_i2c_ex.o"
 "de-260624\stm32f0xx_hal_rcc.o"
