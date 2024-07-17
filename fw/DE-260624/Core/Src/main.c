@@ -26,13 +26,54 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+typedef enum{
+    STATE_OFF = 0U,
+    STATE_ON,
+    STATE_PAUSE
+}state_t;
 
+typedef enum{
+    SPEED_OFF = 0U,
+    SPEED_1,
+    SPEED_2,
+    SPEED_3,
+    SPEED_4
+}speed_t;
+
+typedef enum{
+    MODE_OFF = 0U,
+    MODE_HR,
+    MODE_VENT
+}mode_t;
+
+typedef enum{
+    PAUSE_OFF = 0U,
+    PAUSE_1H,
+    PAUSE_2H,
+    PAUSE_4H,
+    PAUSE_8H
+}pause_t;
+
+typedef struct{
+    state_t state;
+    speed_t speed;
+    mode_t mode;
+    pause_t pause;
+    uint32_t timer;
+    uint32_t timeout;
+    uint32_t pwm;
+    uint8_t cap;
+}fan_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 
 /* USER CODE BEGIN PD */
-
+#define PWM_SPEED_1 0
+#define PWM_SPEED_2 333
+#define PWM_SPEED_3 666
+#define PWM_SPEED_4 999
+#define PWM_RATE    20
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,8 +89,8 @@ IWDG_HandleTypeDef hiwdg;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-uint8_t cap_sen;      // capacitive taster sensors state
-uint32_t fan_speed;
+fan_t fan;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,7 +101,13 @@ static void MX_IWDG_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 static void CAP1293_Init(void);
-
+static void SetLed(fan_t* fan);
+static void SetSpeed(fan_t* fan);
+static void SetMode(fan_t* fan);
+static void SetPause(fan_t* fan);
+static void GetTouch(fan_t* fan);
+static void SetPwm(fan_t* fan);
+static void SetOut(fan_t* fan);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -105,33 +152,46 @@ int main(void)
   CAP1293_Init();
   HAL_Delay(100);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, fan_speed);
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan.pwm);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  fan.state = STATE_ON;
+  fan.mode = MODE_VENT;
+  fan.speed = SPEED_1;
+  fan.pause = PAUSE_OFF;
+  fan.timeout = 0;
+  fan.timer = 0;
+  
   while (1)
   {
-      uint8_t tmp;
+      
     /* USER CODE END WHILE */
     
     /* USER CODE BEGIN 3 */
  
-    cap_sen = CAP1293_ReadRegister(SENSOR_INPUT_STATUS);		
-	if(cap_sen & 0x01U) HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_SET);
-    else HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
-    if(cap_sen & 0x02U) HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_SET);
-    else HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
-    if(cap_sen & 0x04U) HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_SET);
-    else HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET); 
-    if(cap_sen & 0x08U) HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_SET);
-    else HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
-    if(cap_sen & 0x20U) HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_SET);
-    else HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
-    if(cap_sen & 0x40U) HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_SET);
-    else HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);  
-    tmp = CAP1293_ReadRegister(MAIN_CONTROL);
-    if(tmp & (1U<<0)) CAP1293_WriteRegister(MAIN_CONTROL, 0);
+    GetTouch(&fan);
+    SetMode(&fan);
+    SetSpeed(&fan);
+    SetPause(&fan);
+    SetLed(&fan);
+    SetOut(&fan);
+    SetPwm(&fan);
+      
+//	if(cap_sen & 0x01U) HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_SET);
+//    else HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
+//    if(cap_sen & 0x02U) HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_SET);
+//    else HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
+//    if(cap_sen & 0x04U) HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_SET);
+//    else HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET); 
+//    if(cap_sen & 0x08U) HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_SET);
+//    else HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+//    if(cap_sen & 0x20U) HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_SET);
+//    else HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+//    if(cap_sen & 0x40U) HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_SET);
+//    else HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);  
+    
 
     
 //    i = isTouched(1);
@@ -435,6 +495,218 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+static void SetLed(fan_t* fan){
+    
+    switch(fan->speed){
+        case SPEED_1:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
+            break;
+        case SPEED_2:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
+            break;
+        case SPEED_3:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
+            break;
+        case SPEED_4:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_SET);
+            break;
+        case SPEED_OFF:
+        default:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
+            break;
+    }
+    
+    switch(fan->state){
+        case STATE_ON:
+            HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_SET);
+            break;
+        case STATE_PAUSE:
+            HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_SET);
+            break;
+        case STATE_OFF:
+        default:
+            HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
+            break;
+    }
+    
+    switch(fan->mode){
+        case MODE_HR:
+            HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED_DIR_OUT_GPIO_Port, LED_DIR_OUT_Pin, GPIO_PIN_RESET);
+            break;
+        case MODE_VENT:
+            HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_DIR_OUT_GPIO_Port, LED_DIR_OUT_Pin, GPIO_PIN_SET);
+            break;
+        case MODE_OFF:
+        default:
+            HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_DIR_OUT_GPIO_Port, LED_DIR_OUT_Pin, GPIO_PIN_RESET);
+            break;
+    }
+    
+    switch(fan->pause){
+        case PAUSE_1H:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
+            break;
+        case PAUSE_2H:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
+            break;
+        case PAUSE_4H:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
+           break;
+        case PAUSE_8H:
+            HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_SET);
+            break;
+        case PAUSE_OFF:
+        default:
+            break;
+    }
+};
+static void SetSpeed(fan_t* fan){
+    static uint8_t tmp = 0;
+    
+    if(!tmp && (fan->cap & 0x04U)){
+        ++tmp;
+        fan->speed = SPEED_1;
+    }else if(!tmp && (fan->cap & 0x08U)){
+        ++tmp;
+        fan->speed = SPEED_2;
+    }else if(!tmp && (fan->cap & 0x20U)){
+        ++tmp;
+        fan->speed = SPEED_3;
+    }else if(!tmp && (fan->cap & 0x40U)){
+        ++tmp;
+        fan->speed = SPEED_4;
+    } else tmp = 0;
+};
+
+static void SetMode(fan_t* fan){
+    static uint8_t tmp = 0;
+    
+    if(fan->cap & 0x01U){
+        if(!tmp && (fan->mode == MODE_HR)){
+            ++tmp;
+            fan->mode = MODE_VENT;
+        } else if(!tmp && (fan->mode == MODE_VENT)){
+            ++tmp;
+            fan->mode = MODE_HR;
+        }
+    } else tmp = 0;
+};
+
+static void SetPause(fan_t* fan){
+//    static uint8_t tmp = 0;
+//    if(fan->cap & 0x01U){
+//        if(!tmp && fan->mode == MODE_HR){
+//            ++tmp;
+//            fan->mode = MODE_VENT;
+//        } else if(!tmp && fan->mode == MODE_VENT){
+//            ++tmp;
+//            fan->mode = MODE_HR;
+//        }
+//    } else tmp = 0;
+};
+static void GetTouch(fan_t* fan){
+    uint8_t tmp;
+    fan->cap = CAP1293_ReadRegister(SENSOR_INPUT_STATUS);
+    tmp = CAP1293_ReadRegister(MAIN_CONTROL);
+    if(tmp & (1U<<0)) CAP1293_WriteRegister(MAIN_CONTROL, 0);
+    
+    
+};
+
+static void SetPwm(fan_t* fan){
+    static uint32_t tmr = 0, cnt = 0, dir = 0;
+    static speed_t old_speed = SPEED_OFF;
+    
+    if(old_speed != fan->speed){
+        if(cnt == 0){
+            if(old_speed < fan->speed) dir = 1;
+            else dir = 2;
+            tmr = HAL_GetTick();
+            ++cnt;
+        }else if(cnt == 1){
+            if((HAL_GetTick() - tmr) >= PWM_RATE){
+                if(dir == 1) ++fan->pwm;
+                else if(dir == 2) --fan->pwm;
+                __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan->pwm);
+            }
+            if((fan->speed == SPEED_1) && (fan->pwm == PWM_SPEED_1)) old_speed = fan->speed;
+            if((fan->speed == SPEED_2) && (fan->pwm == PWM_SPEED_2)) old_speed = fan->speed;
+            if((fan->speed == SPEED_3) && (fan->pwm == PWM_SPEED_3)) old_speed = fan->speed;
+            if((fan->speed == SPEED_4) && (fan->pwm == PWM_SPEED_4)) old_speed = fan->speed;
+            if(old_speed == fan->speed){
+                cnt = 0;
+                dir = 0;
+                tmr = 0;
+            }
+        }
+    }
+};
+
+static void SetOut(fan_t* fan){
+    static uint8_t cnt = 0;
+    
+    if(fan->mode == MODE_HR){
+        if(cnt == 0){
+            if((HAL_GetTick() - fan->timer) >= fan->timeout){
+                HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_SET);
+                fan->timer = HAL_GetTick();
+                fan->timeout = 60000U;
+                ++cnt;
+            } 
+        }else if(cnt == 1){
+            if((HAL_GetTick() - fan->timer) >= fan->timeout){
+                HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_SET);
+                fan->timer = HAL_GetTick();
+                fan->timeout = 60000U;
+                cnt = 0;
+            }                
+        }
+    }else if(fan->mode == MODE_VENT){
+        cnt = 0;
+        fan->timer = 0;
+        fan->timeout = 0;
+        HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_SET);
+    }else{
+        cnt = 0;
+        fan->timer = 0;
+        fan->timeout = 0;
+        HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_RESET);
+    }
+};
 /**
   * @brief
   * @param
