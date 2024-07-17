@@ -57,6 +57,7 @@ typedef enum{
 typedef struct{
     state_t state;
     speed_t speed;
+    speed_t old_speed;
     mode_t mode;
     pause_t pause;
     uint32_t timer;
@@ -159,7 +160,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   fan.state = STATE_ON;
   fan.mode = MODE_VENT;
-  fan.speed = SPEED_1;
+  fan.speed = SPEED_4;
+  fan.old_speed = SPEED_OFF;
   fan.pause = PAUSE_OFF;
   fan.timeout = 0;
   fan.timer = 0;
@@ -645,11 +647,10 @@ static void GetTouch(fan_t* fan){
 
 static void SetPwm(fan_t* fan){
     static uint32_t tmr = 0, cnt = 0, dir = 0;
-    static speed_t old_speed = SPEED_OFF;
     
-    if(old_speed != fan->speed){
+    if(fan->old_speed != fan->speed){
         if(cnt == 0){
-            if(old_speed < fan->speed) dir = 1;
+            if(fan->old_speed < fan->speed) dir = 1;
             else dir = 2;
             tmr = HAL_GetTick();
             ++cnt;
@@ -659,11 +660,11 @@ static void SetPwm(fan_t* fan){
                 else if(dir == 2) --fan->pwm;
                 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan->pwm);
             }
-            if((fan->speed == SPEED_1) && (fan->pwm == PWM_SPEED_1)) old_speed = fan->speed;
-            if((fan->speed == SPEED_2) && (fan->pwm == PWM_SPEED_2)) old_speed = fan->speed;
-            if((fan->speed == SPEED_3) && (fan->pwm == PWM_SPEED_3)) old_speed = fan->speed;
-            if((fan->speed == SPEED_4) && (fan->pwm == PWM_SPEED_4)) old_speed = fan->speed;
-            if(old_speed == fan->speed){
+            if((fan->speed == SPEED_1) && (fan->pwm == PWM_SPEED_1)) fan->old_speed = fan->speed;
+            if((fan->speed == SPEED_2) && (fan->pwm == PWM_SPEED_2)) fan->old_speed = fan->speed;
+            if((fan->speed == SPEED_3) && (fan->pwm == PWM_SPEED_3)) fan->old_speed = fan->speed;
+            if((fan->speed == SPEED_4) && (fan->pwm == PWM_SPEED_4)) fan->old_speed = fan->speed;
+            if(fan->old_speed == fan->speed){
                 cnt = 0;
                 dir = 0;
                 tmr = 0;
@@ -674,11 +675,14 @@ static void SetPwm(fan_t* fan){
 
 static void SetOut(fan_t* fan){
     static uint8_t cnt = 0;
-    
+    // dodat neblokirajucu pauzu HAL_Delay(5000);
     if(fan->mode == MODE_HR){
         if(cnt == 0){
             if((HAL_GetTick() - fan->timer) >= fan->timeout){
+                __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWM_SPEED_4);
                 HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_RESET);
+                HAL_Delay(5000);
+                __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan->pwm);
                 HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_SET);
                 fan->timer = HAL_GetTick();
                 fan->timeout = 60000U;
@@ -686,8 +690,11 @@ static void SetOut(fan_t* fan){
             } 
         }else if(cnt == 1){
             if((HAL_GetTick() - fan->timer) >= fan->timeout){
-                HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_RESET);
-                HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_SET);
+                __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWM_SPEED_4);
+                HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_RESET);
+                HAL_Delay(5000);
+                __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan->pwm);
+                HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_SET);                
                 fan->timer = HAL_GetTick();
                 fan->timeout = 60000U;
                 cnt = 0;
