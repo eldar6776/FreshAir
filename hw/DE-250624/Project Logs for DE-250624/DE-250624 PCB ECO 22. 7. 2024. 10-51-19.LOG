@@ -1,0 +1,31 @@
+Change Component Footprint: Designator=C14 Old Footprint=E New Footprint=E (8.2 x 4.3 mm)
+Change Component Footprint: Designator=C21 Old Footprint=E New Footprint=E (8.2 x 4.3 mm)
+Change Component Description : Designator=C1 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C2 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C3 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C4 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C5 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C6 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C7 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C8 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C9 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C13 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C15 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C16 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C17 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C18 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C19 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C20 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C22 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C23 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C24 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 25V
+Change Component Description : Designator=C10 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 35V
+Change Component Description : Designator=C11 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor -  35V
+Change Component Description : Designator=C12 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 35V
+Change Component Description : Designator=C25 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 35V
+Change Component Description : Designator=C26 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 35V
+Change Component Description : Designator=C27 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 35V
+Change Component Description : Designator=C28 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 35V
+Change Component Description : Designator=C29 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 35V
+Change Component Description : Designator=C30 Old Description=Ceramic Chip Capacitor - Standard New Description=Ceramic Chip Capacitor - 35V
+Added Member To Class: ClassName=DE-250624 Member=Component R19 330K

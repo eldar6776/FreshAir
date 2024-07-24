@@ -200,5 +200,5 @@ Configuration3_Item5==SimpleBOMView|SimpleBOMMode=0
 Configuration3_Name6=SortOrder
 Configuration3_Item6=Designator=Up|Comment=Up|Footprint=Up
 Configuration3_Name7=VisibleOrder
-Configuration3_Item7=Comment=100|Description=100|Designator=100|Footprint=100|Quantity=100|Value=100
+Configuration3_Item7=Comment=100|Description=146|Designator=89|Footprint=89|Quantity=89|Value=87
 
