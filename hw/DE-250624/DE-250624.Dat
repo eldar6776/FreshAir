@@ -1,36 +1,37 @@
-﻿Field=#~Integer~#~50|Field=Comment~String~Comment~100|Field=Description~String~Description~146|Field=Designator~String~Designator~89|Field=Footprint~String~Footprint~89|Field=Quantity~Integer~Quantity~89|Field=Value~String~Value~87|ReportField=Currency~<none>|ReportField=ProductionQuantity~1|ReportField=ProjectFileName~DE-250624.PrjPcb|ReportField=ProjectFullPath~D:\ProjektiOtvoreni\FreshAir\hw\DE-250624\DE-250624.PrjPcb|ReportField=Title~Bill of Materials For PCB Document [DE-250624.PcbDoc]|ReportField=TotalQuantity~75|ReportField=ReportTime~10:23:02|ReportField=ReportDate~23. 7. 2024.|ReportField=ReportDateTime~23. 7. 2024. 10:23:02|ReportField=OutputName~Bill of Materials|ReportField=OutputType~BOM_PartType|ReportField=GeneratorName~BOM|ReportField=GeneratorDescription~Bill of Materials|ReportField=VariantName~None|ReportField=DataSourceFileName~DE-250624.PcbDoc|ReportField=DataSourceFullPath~D:\ProjektiOtvoreni\FreshAir\hw\DE-250624\DE-250624.PcbDoc|ReportField=PCBConfigurationName~Sources|ReportField=Item~|ReportField=ItemRevision~|ReportField=ItemAndRevision~|ReportField=ItemRevisionBase~|ReportField=ItemRevisionLevel1~|ReportField=ItemRevisionLevel2~|ReportField=ItemRevisionLevel1AndBase~|ReportField=ItemRevisionLevel2AndLevel1~
-1|SENS_SPEED_1|||SENSOR_PAD|1|
-2|SENS_SPEED_2|||SENSOR_PAD|1|
-3|SENS_SPEED_3|||SENSOR_PAD|1|
-4|SENS_SPEED_4|||SENSOR_PAD|1|
-5|C0603|Ceramic Chip Capacitor - 25V|C1, C3, C4, C5, C6, C7, C13, C19, C22, C23|0603|10|100nF, 100nF, 100nF, 1uF, 100nF, 100nF, 100pF, 100nF, 100nF, 100nF
-6|C0805|Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor -  35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V|C2, C10, C11, C12, C15, C16, C17, C18, C20, C24, C25, C26, C27, C28, C29, C30|0805|16|10uF, 22uF, 22uF, 22uF, 22uF, 22uF, 22uF, 22uF, 22uF, 10uF, 22uF, 22uF, 22uF, 22uF, 22uF, 22uF
-7|100nF|Ceramic Chip Capacitor - 25V|C8, C9|0603|2|100nF
-8|22uF|Tantalum Chip Capacitor: 22uF  25VDC|C14, C21|E (8.2 x 4.3 mm)|2|22uF
-9|LED_ON_OFF|Avago HSMW-C265|D1|LED sa rupom|1|
-10|LED_HREC|Avago HSML-C265|D2|LED sa rupom|1|
-11|LED_VENT|Avago HSMR-C265|D3|LED sa rupom|1|
-12|LED_SPEED_4|Avago HSMW-C265|D4|LED sa rupom|1|
-13|LED_SPEED_3|Avago HSMW-C265|D5|LED sa rupom|1|
-14|LED_SPEED_2|Avago HSMW-C265|D6|LED sa rupom|1|
-15|LED_SPEED_1|Avago HSMW-C265|D7|LED sa rupom|1|
-16|0ZRG0120FF1E|30 VDC 2 A Resettable Fuse - PPTC|F1|PIN-W2/E2.8|1|
-17|ASPI-4030S-100M-T|Wire Wound Magnetically Shielded SMD Power Inductor|L1, L2|ASPI-4030S|2|
-18|ICSP|Header, 3-Pin|P1|HDR1X3|1|
-19|VENT|3 pinski terminal blok konektor|P2|TERMINAL BLOK 3|1|
-20|DC_IN|Terminal blok konektor 3,5 mm|P3|TERMINAL BLOK 2|1|
-21|ZXMN3B14F|N-channel Enhancement Mode Vertical D-MOSFET|Q1, Q2|SOT23_N|2|
-22|470R|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R1, R3, R4, R7, R8, R9, R13|ERA-0603|7|
-23|10K|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R2, R6, R10, R11, R12, R18|ERA-0603|6|
-24|10R|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R5|ERA-0603|1|
-25|22K|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R14, R16|ERA-0603|2|
-26|120K|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R15|ERA-0603|1|
-27|1K2|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R17|ERA-0603|1|
-28|330K|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R19|ERA-0603|1|
-29|SENS_ON_OFF||S6|SENSOR_PAD|1|
-30|SENS_MODE||S7|SENSOR_PAD|1|
-31|STM32F030F4P6|ARM Cortex-M0 32-bit MCU, 16 KB Flash, 4 KB Internal RAM, 15 I/Os, 20-pin TSSOP, -40 to 85 degC, Tube|U1|STM-TSSOP20_N|1|
-32|CAP1298|8 chanel capacitive sensor ic|U2|SOIC14|1|
-33|24AA01T-I/LT|1Kbit, 400kHz, 2.5V, I2C Serial EEPROM, 5-Pin SC70, Industrial Temperature, Tape and Reel|U3|SC70-LT5_N|1|
-34|AP63200|2A synchronous  buck converter|U4|TSOT-26|1|
-35|AP63203|2A synchronous  buck converter|U5|TSOT-26|1|
+﻿Field=#~Integer~#~50|Field=Comment~String~Comment~100|Field=Description~String~Description~146|Field=Designator~String~Designator~89|Field=Footprint~String~Footprint~89|Field=Quantity~Integer~Quantity~89|Field=Value~String~Value~87|ReportField=Currency~<none>|ReportField=ProductionQuantity~1|ReportField=ProjectFileName~DE-250624.PrjPcb|ReportField=ProjectFullPath~D:\ProjektiOtvoreni\FreshAir\hw\DE-250624\DE-250624.PrjPcb|ReportField=Title~Bill of Materials For Project [DE-250624.PrjPcb] (No PCB Document Selected)|ReportField=TotalQuantity~76|ReportField=ReportTime~11:36:29|ReportField=ReportDate~25. 7. 2024.|ReportField=ReportDateTime~25. 7. 2024. 11:36:29|ReportField=OutputName~Bill of Materials|ReportField=OutputType~BOM_PartType|ReportField=GeneratorName~BOM|ReportField=GeneratorDescription~Bill of Materials|ReportField=VariantName~None|ReportField=Address1~Braće Mulić 81|ReportField=Address2~71000 Sarajevo|ReportField=Address3~Federacija BiH|ReportField=Address4~Bosna i Hercegovina|ReportField=Application_BuildNumber~|ReportField=ApprovedBy~|ReportField=Author~eldar6776@hotmail.com|ReportField=CheckedBy~|ReportField=CompanyName~|ReportField=CurrentDate~25. 7. 2024.|ReportField=CurrentTime~11:33:20|ReportField=Date~|ReportField=DocumentFullPathAndName~D:\ProjektiOtvoreni\FreshAir\hw\DE-250624\DE-250624.SchDoc|ReportField=DocumentName~DE-250624.SchDoc|ReportField=DocumentNumber~DE-250624|ReportField=DrawnBy~Eldar Dedic|ReportField=Engineer~|ReportField=ImagePath~|ReportField=ModifiedDate~22. 7. 2024.|ReportField=Organization~JUBERA d.o.o.|ReportField=ProjectName~DE-250624.PrjPcb|ReportField=Revision~001|ReportField=Rule~|ReportField=SheetNumber~|ReportField=SheetTotal~|ReportField=Time~|ReportField=Title~Kontroler ventilatora|ReportField=DataSourceFileName~DE-250624.PrjPcb|ReportField=DataSourceFullPath~D:\ProjektiOtvoreni\FreshAir\hw\DE-250624\DE-250624.PrjPcb|ReportField=PCBConfigurationName~Sources|ReportField=Item~|ReportField=ItemRevision~|ReportField=ItemAndRevision~|ReportField=ItemRevisionBase~|ReportField=ItemRevisionLevel1~|ReportField=ItemRevisionLevel2~|ReportField=ItemRevisionLevel1AndBase~|ReportField=ItemRevisionLevel2AndLevel1~
+1|C0603|Ceramic Chip Capacitor - 25V|C1, C3, C4, C5, C6, C7, C13, C19, C22, C23|0603|10|100nF, 100nF, 100nF, 1uF, 100nF, 100nF, 100pF, 100nF, 100nF, 100nF
+2|C0805|Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor -  35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 25V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V, Ceramic Chip Capacitor - 35V|C2, C10, C11, C12, C15, C16, C17, C18, C20, C24, C25, C26, C27, C28, C29, C30|0805|16|10uF, 22uF, 22uF, 22uF, 22uF, 22uF, 22uF, 22uF, 22uF, 10uF, 22uF, 22uF, 22uF, 22uF, 22uF, 22uF
+3|100nF|Ceramic Chip Capacitor - 25V|C8, C9|0603|2|100nF
+4|22uF|Tantalum Chip Capacitor: 22uF  25VDC|C14, C21|E (8.2 x 4.3 mm)|2|22uF
+5|LED_ON_OFF|Avago HSMW-C265|D1|LED sa rupom|1|
+6|LED_HREC|Avago HSML-C265|D2|LED sa rupom|1|
+7|LED_VENT|Avago HSMR-C265|D3|LED sa rupom|1|
+8|LED_SPEED_4|Avago HSMW-C265|D4|LED sa rupom|1|
+9|LED_SPEED_3|Avago HSMW-C265|D5|LED sa rupom|1|
+10|LED_SPEED_2|Avago HSMW-C265|D6|LED sa rupom|1|
+11|LED_SPEED_1|Avago HSMW-C265|D7|LED sa rupom|1|
+12|0ZRG0120FF1E|30 VDC 2 A Resettable Fuse - PPTC|F1|PIN-W2/E2.8|1|
+13|ASPI-4030S-100M-T|Wire Wound Magnetically Shielded SMD Power Inductor|L1, L2|ASPI-4030S|2|
+14|ICSP|Header, 3-Pin|P1|HDR1X3|1|
+15|VENT|3 pinski terminal blok konektor|P2|TERMINAL BLOK 3|1|
+16|DC_IN|Terminal blok konektor 3,5 mm|P3|TERMINAL BLOK 2|1|
+17|ZXMN3B14F|N-channel Enhancement Mode Vertical D-MOSFET|Q1, Q2|SOT23_N|2|
+18|2K2|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R1, R3, R4, R7, R8, R9, R13|ERA-0603|7|
+19|10K|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R2, R6, R10, R11, R12, R18|ERA-0603|6|
+20|10R|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R5|ERA-0603|1|
+21|22K|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R14, R16|ERA-0603|2|
+22|120K|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R15|ERA-0603|1|
+23|1K2|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R17|ERA-0603|1|
+24|330K|Metal Film Thermosensitive Chip Resistor, 0.56 Ohm to 10k Ohm Range, 5% Tolerance, 0603 Size, 0.063 W|R19|ERA-0603|1|
+25|SENS_SPEED_1||S1|SENSOR_PAD|1|
+26|SENS_SPEED_2||S2|SENSOR_PAD|1|
+27|SENS_SPEED_3||S3|SENSOR_PAD|1|
+28|SENS_SPEED_4||S4|SENSOR_PAD|1|
+29|SENS_GUARD||S5|SENSOR_PAD|1|
+30|SENS_ON_OFF||S6|SENSOR_PAD|1|
+31|SENS_MODE||S7|SENSOR_PAD|1|
+32|STM32F030F4P6|ARM Cortex-M0 32-bit MCU, 16 KB Flash, 4 KB Internal RAM, 15 I/Os, 20-pin TSSOP, -40 to 85 degC, Tube|U1|STM-TSSOP20_N|1|
+33|CAP1298|8 chanel capacitive sensor ic|U2|SOIC14|1|
+34|24AA01T-I/LT|1Kbit, 400kHz, 2.5V, I2C Serial EEPROM, 5-Pin SC70, Industrial Temperature, Tape and Reel|U3|SC70-LT5_N|1|
+35|AP63200|2A synchronous  buck converter|U4|TSOT-26|1|
+36|AP63203|2A synchronous  buck converter|U5|TSOT-26|1|

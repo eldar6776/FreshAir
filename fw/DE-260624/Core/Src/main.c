@@ -70,6 +70,8 @@ typedef struct{
     uint32_t pwm;
     uint8_t cap;
     uint8_t touch_enable;
+    uint32_t filter_tmr;
+    uint8_t filter;
 }fan_t;
 /* USER CODE END PTD */
 
@@ -89,6 +91,7 @@ typedef struct{
 #define FANSTOP_TOUT4   12000
 #define ON_OFF_BTN_TIME 5000
 #define FAN_HR_DIR_TIME 70000
+#define FILTER_CLEAN    4320 // 180 days x 24 hours filter cleaning warning
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -124,6 +127,8 @@ static void GetTouch(fan_t* fan);
 static void SetPwm(fan_t* fan);
 static void SetOut(fan_t* fan);
 static void CheckTimer(fan_t* fan);
+static void Save(fan_t* fan);
+static void Load(fan_t* fan);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -797,11 +802,46 @@ static void SetOut(fan_t* fan){
     }
 };
 static void CheckTimer(fan_t* fan){
+    static uint32_t reload = 0;
+    fan_t tmp;
+    
     if((HAL_GetTick() - fan->led_tmr) >= LED_ON_TIME) fan->led_tmr = 0;
     if((HAL_GetTick() - fan->blink_tmr) >= LED_BLINK_TIME) fan->blink_tmr = 0;
-    if((HAL_GetTick() - fan->touch_tmr) >= ON_OFF_BTN_TIME) fan->touch_tmr = 0, fan->touch_enable = 1;
+    if((HAL_GetTick() - fan->touch_tmr) >= LED_ON_TIME) fan->touch_tmr = 0, fan->touch_enable = 1;
     if((HAL_GetTick() - fan->pause_tmr) >= fan->pause_timeout) fan->pause_tmr = 0;
+    if((HAL_GetTick() - reload) >= 3600000U){
+        reload = HAL_GetTick();
+        Load(&tmp);
+        if ((tmp.state != fan->state) ||
+            (tmp.mode  != fan->mode)  ||
+            (tmp.pause != fan->pause) ||
+            (tmp.speed != fan->speed) ||
+            (tmp.filter_tmr != fan->filter_tmr)){
+                ++fan->filter_tmr;
+                Save(fan);
+                if(fan->filter_tmr >= FILTER_CLEAN) fan->filter = 1;
+            }
+    }
 }
+
+static void Save(fan_t* fan){
+    uint8_t size = sizeof(fan_t);
+    uint8_t data[sizeof(fan_t)], addr = 0;
+    memcpy(data, fan, sizeof(data));
+    while(size){
+        HAL_I2C_Mem_Write(&hi2c1, 0xA0, addr, I2C_MEMADD_SIZE_8BIT, &data[addr], 8, 1000);
+        if(size >= 8) size -= 8, addr += 8;
+        else size = 0; 
+    }
+}
+
+static void Load(fan_t* fan){
+    uint8_t data[sizeof(fan_t)];
+    
+    HAL_I2C_Mem_Read(&hi2c1, 0xA0, 0, I2C_MEMADD_SIZE_8BIT, data, sizeof(data), 1000);
+    memcpy(fan, data, sizeof(data));
+}
+
 /**
   * @brief
   * @param

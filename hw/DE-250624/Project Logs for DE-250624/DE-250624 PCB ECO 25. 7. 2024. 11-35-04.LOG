@@ -1,0 +1,14 @@
+Change Component Comment : Designator=R1 Old Comment=470R New Comment=2K2
+Change Component Comment : Designator=R3 Old Comment=470R New Comment=2K2
+Change Component Comment : Designator=R4 Old Comment=470R New Comment=2K2
+Change Component Comment : Designator=R7 Old Comment=470R New Comment=2K2
+Change Component Comment : Designator=R8 Old Comment=470R New Comment=2K2
+Change Component Comment : Designator=R9 Old Comment=470R New Comment=2K2
+Change Component Comment : Designator=R13 Old Comment=470R New Comment=2K2
+Change Component Designator: OldDesignator= NewDesignator=S1
+Change Component Designator: OldDesignator= NewDesignator=S2
+Change Component Designator: OldDesignator= NewDesignator=S3
+Change Component Designator: OldDesignator= NewDesignator=S4
+Added Member To Class: ClassName=DE-250624 Member=Component D6 LED_SPEED_2
+Added Member To Class: ClassName=DE-250624 Member=Component Q1 ZXMN3B14F
+Added Member To Class: ClassName=DE-250624 Member=Component R2 10K
