@@ -108,7 +108,7 @@ TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 fan_t fan;
-
+uint8_t ee_sta = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,9 +126,11 @@ static void SetPause(fan_t* fan);
 static void GetTouch(fan_t* fan);
 static void SetPwm(fan_t* fan);
 static void SetOut(fan_t* fan);
+static void CheckFilter(fan_t* fan);
 static void CheckTimer(fan_t* fan);
 static void Save(fan_t* fan);
 static void Load(fan_t* fan);
+static void LoadDefault(fan_t* fan);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -178,17 +180,17 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  fan.state = STATE_ON;
-  fan.mode = MODE_VENT;
-  fan.speed = SPEED_2;
-  fan.old_speed = SPEED_OFF;
-  fan.pause = PAUSE_OFF;
-  fan.timeout = 0;
-  fan.timer = 0;
-  fan.touch_enable = 0;
-  fan.touch_tmr = HAL_GetTick();
-  fan.led_tmr = HAL_GetTick();
-  fan.pwm = PWM_SPEED_1;
+  Load(&fan); // try to load last state from eeprom
+  /**
+  *     in case of bad eeprom load default values
+  *     and in case of new eeprom (all 0xff) init it with default
+  */
+  if(ee_sta) LoadDefault(&fan);
+  else if((fan.state>3)||(fan.speed>4)||(fan.mode>2)||(fan.pause>4)){
+      LoadDefault(&fan);
+      Save(&fan);
+  }
+
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan.pwm);
   
   while (1)
@@ -203,8 +205,9 @@ int main(void)
     SetMode(&fan); 
     SetOut(&fan);
     SetPwm(&fan);
-    SetLed(&fan);  
-    CheckTimer(&fan);  
+    SetLed(&fan);
+    CheckTimer(&fan);
+    CheckFilter(&fan);
   }
   /* USER CODE END 3 */
 }
@@ -448,10 +451,34 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief  if something wrong load default values and run
+  * @param
+  * @retval
+  */
+static void LoadDefault(fan_t* fan){
+    fan->state = STATE_ON;
+    fan->mode = MODE_VENT;
+    fan->speed = SPEED_2;
+    fan->old_speed = SPEED_OFF;
+    fan->pause = PAUSE_OFF;
+    fan->timeout = 0;
+    fan->timer = 0;
+    fan->touch_enable = 0;
+    fan->touch_tmr = HAL_GetTick();
+    fan->led_tmr = HAL_GetTick();
+    fan->pwm = PWM_SPEED_1; 
+}
+/**
+  * @brief  handle LEDs according to system status
+  * @param
+  * @retval
+  */
 static void SetLed(fan_t* fan){
-    static uint8_t cnt = 0;
+    static uint8_t cnt = 0, cnt1 = 0;
+    static uint32_t tmr1 = 0;
     
-    if(fan->led_tmr){
+    if(fan->led_tmr && !fan->filter){
         switch(fan->state){
             case STATE_ON:
                 switch(fan->speed){
@@ -575,7 +602,8 @@ static void SetLed(fan_t* fan){
                 HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
                 HAL_GPIO_WritePin(LED_DIR_OUT_GPIO_Port, LED_DIR_OUT_Pin, GPIO_PIN_RESET);
                 break;
-        }
+        }            
+
         if(fan->touch_enable == 1) fan->touch_enable = 2;
     }else{
         HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
@@ -583,15 +611,46 @@ static void SetLed(fan_t* fan){
         HAL_GPIO_WritePin(LED_SPEED_3_GPIO_Port, LED_SPEED_3_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED_DIR_OUT_GPIO_Port, LED_DIR_OUT_Pin, GPIO_PIN_RESET);
+        if(!fan->filter){
+            HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_DIR_OUT_GPIO_Port, LED_DIR_OUT_Pin, GPIO_PIN_RESET);
+        }
+    }
+    
+    if(fan->filter){
+        switch (cnt1){
+            case 0:
+                HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_SET);
+                HAL_GPIO_WritePin(LED_DIR_OUT_GPIO_Port, LED_DIR_OUT_Pin, GPIO_PIN_SET);
+                tmr1 = HAL_GetTick();
+                ++cnt1;
+                break;
+            case 1:
+                if((HAL_GetTick() - tmr1) >= LED_BLINK_TIME){
+                    HAL_GPIO_WritePin(LED_DIR_IN_GPIO_Port, LED_DIR_IN_Pin, GPIO_PIN_RESET);
+                    HAL_GPIO_WritePin(LED_DIR_OUT_GPIO_Port, LED_DIR_OUT_Pin, GPIO_PIN_RESET);
+                    tmr1 = HAL_GetTick();
+                    ++cnt1;
+                }
+                break;
+            case 2:
+            default:
+                if((HAL_GetTick() - tmr1) >= LED_BLINK_TIME){
+                    cnt1 = 0;
+                }
+                break;
+        }
     }
 };
-
+/**
+  * @brief  speed selection
+  * @param
+  * @retval
+  */
 static void SetSpeed(fan_t* fan){
     static uint8_t tmp = 0;
     
-    if(!fan->touch_enable){
+    if(!fan->touch_enable && !fan->filter){
         if(!tmp && (fan->cap & 0x04U)){
             ++tmp;
             fan->speed = SPEED_1;
@@ -615,11 +674,15 @@ static void SetSpeed(fan_t* fan){
         } else tmp = 0;
     }
 };
-
+/**
+  * @brief  mode selection
+  * @param
+  * @retval
+  */
 static void SetMode(fan_t* fan){
     static uint8_t tmp = 0;
     
-    if(!fan->touch_enable){
+    if(!fan->touch_enable && !fan->filter){
         if(fan->cap & 0x01U){
             if(!tmp && (fan->mode == MODE_HR)){
                 ++tmp;
@@ -631,12 +694,16 @@ static void SetMode(fan_t* fan){
         } else tmp = 0;
     }
 };
-
+/**
+  * @brief  pause selection
+  * @param
+  * @retval
+  */
 static void SetPause(fan_t* fan){
     static uint8_t cnt = 0, en = 0;
     static uint32_t tmr = 0;
     
-    if(!fan->touch_enable){
+    if(!fan->touch_enable && !fan->filter){
         if(!cnt && (fan->cap & 0x02)){
             fan->state = STATE_PAUSE;
             if      (fan->pause == PAUSE_OFF) fan->pause = PAUSE_1H, fan->pause_timeout = 3600000U;
@@ -677,6 +744,11 @@ static void SetPause(fan_t* fan){
         }
     }
 };
+/**
+  * @brief  load the state of the touch sensors and set some flags
+  * @param
+  * @retval
+  */
 static void GetTouch(fan_t* fan){
     uint8_t tmp;
     fan->cap = CAP1293_ReadRegister(SENSOR_INPUT_STATUS);
@@ -685,7 +757,37 @@ static void GetTouch(fan_t* fan){
     if(fan->cap) fan->touch_tmr = HAL_GetTick(),  fan->led_tmr = HAL_GetTick();
     if(!fan->cap && (fan->touch_enable == 2)) fan->touch_enable = 0;
 };
-
+/**
+  * @brief  checking and confirming of filter cleaning
+  * @param
+  * @retval
+  */
+static void CheckFilter(fan_t* fan){
+    static uint8_t cnt = 0;
+    static uint32_t tmr = 0;
+    
+    if(fan->filter){
+        if(!cnt && (fan->cap & 0x01)){
+            tmr = HAL_GetTick();
+            ++cnt;
+        }else if (cnt == 1){
+            if (!(fan->cap & 0x01)){
+                cnt = 0;
+                tmr = 0;
+            }else if((HAL_GetTick() - tmr) >= ON_OFF_BTN_TIME){
+                fan->filter = 0;
+                Save(fan);
+                cnt = 0;
+                tmr = 0;
+            }
+        }
+    }
+}
+/**
+  * @brief  pwm output adjustment and smooth speed transition
+  * @param
+  * @retval
+  */
 static void SetPwm(fan_t* fan){
     static uint32_t tmr = 0, cnt = 0, dir = 0;
     
@@ -713,7 +815,11 @@ static void SetPwm(fan_t* fan){
         }
     }
 };
-
+/**
+  * @brief  adjust direction of the fan according to selected mode
+  * @param
+  * @retval
+  */
 static void SetOut(fan_t* fan){
     static uint8_t cnt = 0, cnt1 = 0, cnt2 = 0;
     static uint32_t tmr = 0, timeout = 0;
@@ -801,9 +907,14 @@ static void SetOut(fan_t* fan){
         cnt1 = 0;     
     }
 };
+/**
+  * @brief  checking timers and setting system flags
+  * @param
+  * @retval
+  */
 static void CheckTimer(fan_t* fan){
     static uint32_t reload = 0;
-    fan_t tmp;
+  
     
     if((HAL_GetTick() - fan->led_tmr) >= LED_ON_TIME) fan->led_tmr = 0;
     if((HAL_GetTick() - fan->blink_tmr) >= LED_BLINK_TIME) fan->blink_tmr = 0;
@@ -811,34 +922,36 @@ static void CheckTimer(fan_t* fan){
     if((HAL_GetTick() - fan->pause_tmr) >= fan->pause_timeout) fan->pause_tmr = 0;
     if((HAL_GetTick() - reload) >= 3600000U){
         reload = HAL_GetTick();
-        Load(&tmp);
-        if ((tmp.state != fan->state) ||
-            (tmp.mode  != fan->mode)  ||
-            (tmp.pause != fan->pause) ||
-            (tmp.speed != fan->speed) ||
-            (tmp.filter_tmr != fan->filter_tmr)){
-                ++fan->filter_tmr;
-                Save(fan);
-                if(fan->filter_tmr >= FILTER_CLEAN) fan->filter = 1;
-            }
+        ++fan->filter_tmr;
+        Save(fan);
+        if(fan->filter_tmr >= FILTER_CLEAN) fan->filter = 1;
     }
 }
-
+/**
+  * @brief  save state to eeprom 
+  * @param
+  * @retval
+  */
 static void Save(fan_t* fan){
     uint8_t size = sizeof(fan_t);
     uint8_t data[sizeof(fan_t)], addr = 0;
     memcpy(data, fan, sizeof(data));
-    while(size){
-        HAL_I2C_Mem_Write(&hi2c1, 0xA0, addr, I2C_MEMADD_SIZE_8BIT, &data[addr], 8, 1000);
+    while(size && !ee_sta){
+        if (HAL_I2C_Mem_Write(&hi2c1, 0xA0, addr, I2C_MEMADD_SIZE_8BIT, &data[addr], 8, 1000) != HAL_OK) ++ee_sta;
+        HAL_Delay(5);
         if(size >= 8) size -= 8, addr += 8;
         else size = 0; 
     }
 }
-
+/**
+  * @brief  load state from eeprom 
+  * @param
+  * @retval
+  */
 static void Load(fan_t* fan){
     uint8_t data[sizeof(fan_t)];
-    
-    HAL_I2C_Mem_Read(&hi2c1, 0xA0, 0, I2C_MEMADD_SIZE_8BIT, data, sizeof(data), 1000);
+    if (ee_sta) return;
+    if (HAL_I2C_Mem_Read(&hi2c1, 0xA0, 0, I2C_MEMADD_SIZE_8BIT, data, sizeof(data), 1000) != HAL_OK) ++ee_sta;
     memcpy(fan, data, sizeof(data));
 }
 
