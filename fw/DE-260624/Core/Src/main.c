@@ -186,6 +186,8 @@ int main(void)
   *     in case of bad eeprom load default values
   *     and in case of new eeprom (all 0xff) init it with default
   */
+  fan.led_tmr = HAL_GetTick(); // show led status
+  
   if(ee_sta) LoadDefault(&fan);
   else if((fan.state>3)||(fan.speed>4)||(fan.mode>2)||(fan.pause>4)){
       LoadDefault(&fan);
