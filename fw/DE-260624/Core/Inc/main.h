@@ -56,7 +56,7 @@ extern I2C_HandleTypeDef hi2c1;
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
+void Error_Handler(uint8_t call);
 
 /* USER CODE BEGIN EFP */
 uint8_t CAP1293_ReadRegister(uint8_t register_address);

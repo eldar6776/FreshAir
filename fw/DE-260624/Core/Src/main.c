@@ -85,11 +85,11 @@ typedef struct{
 #define PWM_RATE    20
 #define LED_ON_TIME 20000
 #define LED_BLINK_TIME 500
-#define FANSTOP_TOUT1   2000
-#define FANSTOP_TOUT2   4000
-#define FANSTOP_TOUT3   8000
+#define FANSTOP_TOUT1   3000
+#define FANSTOP_TOUT2   6000
+#define FANSTOP_TOUT3   9000
 #define FANSTOP_TOUT4   12000
-#define ON_OFF_BTN_TIME 5000
+#define ON_OFF_BTN_TIME 2000
 #define FAN_HR_DIR_TIME 70000
 #define FILTER_CLEAN    4320 // 180 days x 24 hours filter cleaning warning
 /* USER CODE END PD */
@@ -108,7 +108,8 @@ TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 fan_t fan;
-uint8_t ee_sta = 0;
+static uint32_t reload = 0, cal = 0, mon = 0;
+static uint8_t ee_sta = 0, transition = 0, spch = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -148,6 +149,7 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 
+    
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -194,10 +196,18 @@ int main(void)
       Save(&fan);
   }
 
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan.pwm);
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWM_SPEED_1); 
+  cal = HAL_GetTick();
   
   while (1)
   {
+      // ubrzat ako može reakciju na dodir
+      // nevaljaju brzine poslije pauze
+      // na 75% pumpa ventilatore ***
+      // kad se pokrene boos resetovat timer za poslednji modu u eepromu ***
+      // restrat ako je touch aktivan duže od 30 s ***
+      // overshoot limiter
+      // sa ven na hr pamti zadnje stanje vent pa prebacuje hr prvi puta ****
       
     /* USER CODE END WHILE */
     
@@ -212,7 +222,23 @@ int main(void)
     SetLed(&fan);
     CheckTimer(&fan);
     CheckFilter(&fan);
+    // kalibrisat samo kad je led iskljucen svako par minuta
+    if ((fan.touch_enable != 0) && ((HAL_GetTick()-cal) >= 23456)){
+        cal = HAL_GetTick();
+        calibrateAll();
+    }
+    if (fan.cap && !mon){
+        mon = HAL_GetTick();
+    } else if (!fan.cap && mon) mon = 0;
     
+    if(mon && (HAL_GetTick() - mon) >= 34567){
+        mon = HAL_GetTick();
+        calibrateAll();
+    }
+    HAL_Delay(10);
+#ifdef USE_WATCHDOG
+    HAL_IWDG_Refresh(&hiwdg);
+#endif
   }
   /* USER CODE END 3 */
 }
@@ -237,7 +263,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(1);
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
@@ -250,13 +276,13 @@ void SystemClock_Config(void)
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(1);
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(1);
   }
 }
 
@@ -286,21 +312,21 @@ static void MX_I2C1_Init(void)
   hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
   if (HAL_I2C_Init(&hi2c1) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(2);
   }
 
   /** Configure Analogue filter
   */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(2);
   }
 
   /** Configure Digital filter
   */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(2);
   }
   /* USER CODE BEGIN I2C1_Init 2 */
 
@@ -324,12 +350,12 @@ static void MX_IWDG_Init(void)
 
   /* USER CODE END IWDG_Init 1 */
   hiwdg.Instance = IWDG;
-  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_128;
   hiwdg.Init.Window = 4095;
   hiwdg.Init.Reload = 4095;
   if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(3);
   }
   /* USER CODE BEGIN IWDG_Init 2 */
 #endif
@@ -364,22 +390,22 @@ static void MX_TIM3_Init(void)
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(4);
   }
   sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
   if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(4);
   }
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(4);
   }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(4);
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.Pulse = 0;
@@ -387,7 +413,7 @@ static void MX_TIM3_Init(void)
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
-    Error_Handler();
+    Error_Handler(4);
   }
   /* USER CODE BEGIN TIM3_Init 2 */
 
@@ -493,6 +519,7 @@ static void SetLed(fan_t* fan){
             case STATE_ON:
                 switch(fan->speed){
                     case SPEED_1:
+                        if(transition) break;
                         HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
                         HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_SET);
                         HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
@@ -500,6 +527,7 @@ static void SetLed(fan_t* fan){
                         HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
                         break;
                     case SPEED_2:
+                        if(transition) break;
                         HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
                         HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
                         HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_SET);
@@ -507,6 +535,7 @@ static void SetLed(fan_t* fan){
                         HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
                         break;
                     case SPEED_3:
+                        if(transition) break;
                         HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
                         HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
                         HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
@@ -514,6 +543,7 @@ static void SetLed(fan_t* fan){
                         HAL_GPIO_WritePin(LED_SPEED_4_GPIO_Port, LED_SPEED_4_Pin, GPIO_PIN_RESET);
                         break;
                     case SPEED_4:
+                        if(transition) break;
                         HAL_GPIO_WritePin(LED_ON_OFF_GPIO_Port, LED_ON_OFF_Pin, GPIO_PIN_RESET);
                         HAL_GPIO_WritePin(LED_SPEED_1_GPIO_Port, LED_SPEED_1_Pin, GPIO_PIN_RESET);
                         HAL_GPIO_WritePin(LED_SPEED_2_GPIO_Port, LED_SPEED_2_Pin, GPIO_PIN_RESET);
@@ -690,21 +720,28 @@ static void SetSpeed(fan_t* fan){
     if(!fan->touch_enable && !fan->filter){
         if(!tmp && (fan->cap & 0x04U)){
             ++tmp;
+            spch = 1;
+            transition = 0;
             fan->speed = SPEED_1;
             fan->state = STATE_ON;
             fan->pause = PAUSE_OFF;
         }else if(!tmp && (fan->cap & 0x08U)){
             ++tmp;
+            spch = 1;
+            transition = 0;
             fan->speed = SPEED_2;
             fan->state = STATE_ON;
             fan->pause = PAUSE_OFF;
         }else if(!tmp && (fan->cap & 0x20U)){
             ++tmp;
+            spch = 1;
+            transition = 0;
             fan->speed = SPEED_3;
             fan->state = STATE_ON;
             fan->pause = PAUSE_OFF;
         }else if(!tmp && (fan->cap & 0x40U) && (fan->state != STATE_BOOST)){
             ++tmp;
+            transition = 0;
             fan->speed = SPEED_4;
             fan->state = STATE_ON;
             fan->pause = PAUSE_OFF;
@@ -800,11 +837,13 @@ static void CheckBoost(fan_t* fan){
             if (!(fan->cap & 0x40U)){
                 cnt = 0;
                 tmr = 0;
+                spch = 1;
             }else if((HAL_GetTick() - tmr) >= ON_OFF_BTN_TIME){
                 fan->state = STATE_BOOST;
                 fan->speed = SPEED_4;
                 fan->pause = PAUSE_OFF;
                 fan->mode = MODE_VENT;
+                reload = HAL_GetTick();
                 ++cnt;
             } 
         }else if(cnt == 2){
@@ -823,6 +862,7 @@ static void CheckBoost(fan_t* fan){
             fan->state = old_fan.state;
             fan->pause = old_fan.pause;
             fan->mode = old_fan.mode;
+            reload = HAL_GetTick();
         }
     }
 }
@@ -833,9 +873,16 @@ static void CheckBoost(fan_t* fan){
   */
 static void GetTouch(fan_t* fan){
     uint8_t tmp;
-    fan->cap = CAP1293_ReadRegister(SENSOR_INPUT_STATUS);
-    tmp = CAP1293_ReadRegister(MAIN_CONTROL);
-    if(tmp & (1U<<0)) CAP1293_WriteRegister(MAIN_CONTROL, 0);
+    if(HAL_GPIO_ReadPin(ALERT_GPIO_Port, ALERT_Pin) == GPIO_PIN_RESET){
+        fan->cap = CAP1293_ReadRegister(SENSOR_INPUT_STATUS);
+        tmp = CAP1293_ReadRegister(MAIN_CONTROL);
+        if(tmp & (1U<<0)) CAP1293_WriteRegister(MAIN_CONTROL, 0);
+    }else if((fan->cap & 0x01) || (fan->cap & 0x02) || (fan->cap & 0x40U)){
+        fan->cap = CAP1293_ReadRegister(SENSOR_INPUT_STATUS);
+//        tmp = CAP1293_ReadRegister(MAIN_CONTROL);
+//        if(tmp & (1U<<0)) CAP1293_WriteRegister(MAIN_CONTROL, 0);
+//        HAL_Delay(50);
+    }else fan->cap = 0;
     if(fan->cap) fan->touch_tmr = HAL_GetTick(),  fan->led_tmr = HAL_GetTick();
     if(!fan->cap && (fan->touch_enable == 2)) fan->touch_enable = 0;
 };
@@ -857,6 +904,7 @@ static void CheckFilter(fan_t* fan){
                 cnt = 0;
                 tmr = 0;
             }else if((HAL_GetTick() - tmr) >= ON_OFF_BTN_TIME){
+                fan->filter_tmr = 0;
                 fan->filter = 0;
                 Save(fan);
                 cnt = 0;
@@ -876,13 +924,16 @@ static void SetPwm(fan_t* fan){
     if(fan->old_speed != fan->speed){
         if(cnt == 0){
             if(fan->old_speed < fan->speed) dir = 2;
-            else dir = 1;
+            else if(fan->old_speed > fan->speed) dir = 1;
             tmr = HAL_GetTick();
             ++cnt;
         }else if(cnt == 1){
             if((HAL_GetTick() - tmr) >= PWM_RATE){
                 if((dir == 1) && (fan->pwm < PWM_SPEED_1)) ++fan->pwm;
                 else if((dir == 2) && (fan->pwm)) --fan->pwm;
+                else {
+                    fan->old_speed = fan->speed;
+                }
                 __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan->pwm);
             }
             if((fan->speed == SPEED_1) && (fan->pwm == PWM_SPEED_1)) fan->old_speed = fan->speed;
@@ -896,6 +947,22 @@ static void SetPwm(fan_t* fan){
             }
         }
     }
+    else if((fan->speed == SPEED_1) && (fan->pwm != PWM_SPEED_1)){
+        if(fan->pwm < PWM_SPEED_1) fan->old_speed = SPEED_2;
+        else fan->old_speed = SPEED_OFF;
+    }
+    else if((fan->speed == SPEED_2) && (fan->pwm != PWM_SPEED_2)){
+        if(fan->pwm < PWM_SPEED_2) fan->old_speed = SPEED_3;
+        else fan->old_speed = SPEED_1;
+    }
+    else if((fan->speed == SPEED_3) && (fan->pwm != PWM_SPEED_3)){
+        if(fan->pwm < PWM_SPEED_3) fan->old_speed = SPEED_4;
+        else fan->old_speed = SPEED_2;
+    }
+    else if((fan->speed == SPEED_4) && (fan->pwm != PWM_SPEED_4)){
+        fan->old_speed = SPEED_3;
+    }    
+   
 };
 /**
   * @brief  adjust direction of the fan according to selected mode
@@ -905,6 +972,7 @@ static void SetPwm(fan_t* fan){
 static void SetOut(fan_t* fan){
     static uint8_t cnt = 0, cnt1 = 0, cnt2 = 0;
     static uint32_t tmr = 0, timeout = 0;
+    static speed_t _speed;
     
     if((fan->state != STATE_ON)&&(fan->state != STATE_BOOST)){
         cnt = 0;
@@ -912,24 +980,27 @@ static void SetOut(fan_t* fan){
         cnt2 = 0;
         fan->timer = 0;
         fan->timeout = 0;
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWM_SPEED_1);
+        fan->speed = SPEED_1;
         HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_RESET);
     }else if(fan->mode == MODE_HR){
         if(cnt == 0){
             if((HAL_GetTick() - fan->timer) >= fan->timeout){
                 if(cnt1 == 0){
-                    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWM_SPEED_1);
+                    _speed = fan->speed;
+                    fan->speed = SPEED_1;
+                    transition = 1;
                     HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_RESET);
                     tmr = HAL_GetTick();
-                    if      (fan->speed == SPEED_1) timeout = FANSTOP_TOUT1;
-                    else if (fan->speed == SPEED_2) timeout = FANSTOP_TOUT2;
-                    else if (fan->speed == SPEED_3) timeout = FANSTOP_TOUT3;
-                    else if (fan->speed == SPEED_4) timeout = FANSTOP_TOUT4;
+                    if      (_speed == SPEED_1) timeout = FANSTOP_TOUT1;
+                    else if (_speed == SPEED_2) timeout = FANSTOP_TOUT2;
+                    else if (_speed == SPEED_3) timeout = FANSTOP_TOUT3;
+                    else if (_speed == SPEED_4) timeout = FANSTOP_TOUT4;
                     ++cnt1;
                 }else if(cnt1 == 1){
                     if((HAL_GetTick() - tmr) >= timeout){
-                        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan->pwm);
+                        fan->speed = _speed;
+                        transition = 0;
                         HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_SET);
                         fan->timer = HAL_GetTick();
                         fan->timeout = FAN_HR_DIR_TIME;
@@ -941,17 +1012,20 @@ static void SetOut(fan_t* fan){
         }else if(cnt == 1){
              if((HAL_GetTick() - fan->timer) >= fan->timeout){
                 if(cnt1 == 0){
-                    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWM_SPEED_1);
+                    _speed = fan->speed;
+                    fan->speed = SPEED_1;
+                    transition = 1;
                     HAL_GPIO_WritePin(VENT_DIR_OUT_GPIO_Port, VENT_DIR_OUT_Pin, GPIO_PIN_RESET);
                     tmr = HAL_GetTick();
-                    if      (fan->speed == SPEED_1) timeout = FANSTOP_TOUT1;
-                    else if (fan->speed == SPEED_2) timeout = FANSTOP_TOUT2;
-                    else if (fan->speed == SPEED_3) timeout = FANSTOP_TOUT3;
-                    else if (fan->speed == SPEED_4) timeout = FANSTOP_TOUT4;
+                    if      (_speed == SPEED_1) timeout = FANSTOP_TOUT1;
+                    else if (_speed == SPEED_2) timeout = FANSTOP_TOUT2;
+                    else if (_speed == SPEED_3) timeout = FANSTOP_TOUT3;
+                    else if (_speed == SPEED_4) timeout = FANSTOP_TOUT4;
                     ++cnt1;
                 }else if(cnt1 == 1){
                     if((HAL_GetTick() - tmr) >= timeout){
-                        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, fan->pwm);
+                        fan->speed = _speed;
+                        transition = 0;
                         HAL_GPIO_WritePin(VENT_DIR_IN_GPIO_Port, VENT_DIR_IN_Pin, GPIO_PIN_SET);
                         fan->timer = HAL_GetTick();
                         fan->timeout = FAN_HR_DIR_TIME;
@@ -983,10 +1057,15 @@ static void SetOut(fan_t* fan){
                 ++cnt2;
             }     
         }
+        transition = 0;
         fan->timer = 0;
         fan->timeout = 0;
         cnt = 0;
         cnt1 = 0;     
+    }
+    if(spch){
+        spch = 0;
+        _speed = fan->speed;
     }
 };
 /**
@@ -994,19 +1073,21 @@ static void SetOut(fan_t* fan){
   * @param
   * @retval
   */
-static void CheckTimer(fan_t* fan){
-    static uint32_t reload = 0;
-  
-    
+static void CheckTimer(fan_t* fan){ 
     if((HAL_GetTick() - fan->led_tmr) >= LED_ON_TIME) fan->led_tmr = 0;
-    
     if((HAL_GetTick() - fan->touch_tmr) >= LED_ON_TIME) fan->touch_tmr = 0, fan->touch_enable = 1;
     if((HAL_GetTick() - fan->pause_tmr) >= fan->pause_timeout) fan->pause_tmr = 0;
     if((HAL_GetTick() - reload) >= 3600000U){
         reload = HAL_GetTick();
         ++fan->filter_tmr;
         Save(fan);
-        if(fan->filter_tmr >= FILTER_CLEAN) fan->filter = 1;
+        if(fan->filter_tmr >= FILTER_CLEAN) {
+            fan->filter = 1;
+            fan->pause_tmr = 0;
+            fan->pause_timeout = 0;
+            fan->state = STATE_OFF;
+            fan->pause = PAUSE_OFF;
+        }
     }
 }
 /**
@@ -1050,11 +1131,11 @@ static void CAP1293_Init(void)
 	product_id = 0U;
     
 	reg_wr[0] = PROD_ID;
-	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_wr, 1U, DRV_TOUT) != HAL_OK)       Error_Handler();
-	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &product_id, 1U, DRV_TOUT) != HAL_OK)    Error_Handler();
+	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_wr, 1U, DRV_TOUT) != HAL_OK)       Error_Handler(5);
+	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &product_id, 1U, DRV_TOUT) != HAL_OK)    Error_Handler(5);
 	reg_wr[0] = MANUFACTURE_ID;
-	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_wr, 1U, DRV_TOUT) != HAL_OK)       Error_Handler();
-	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &vendor_id, 1U, DRV_TOUT) != HAL_OK)     Error_Handler();
+	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_wr, 1U, DRV_TOUT) != HAL_OK)       Error_Handler(5);
+	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &vendor_id, 1U, DRV_TOUT) != HAL_OK)     Error_Handler(5);
 
 	if((product_id == PROD_ID_VALUE_1298) && (vendor_id == CAP1293_VENDOR_ID)) 
 	{
@@ -1077,8 +1158,8 @@ uint8_t CAP1293_ReadRegister(uint8_t register_address)
 {
 	uint8_t ret_val;
 	
-	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, &register_address, 1U, DRV_TOUT) != HAL_OK)    Error_Handler();
-	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &ret_val, 1U, DRV_TOUT) != HAL_OK)               Error_Handler();
+	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, &register_address, 1U, DRV_TOUT) != HAL_OK)    Error_Handler(6);
+	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &ret_val, 1U, DRV_TOUT) != HAL_OK)               Error_Handler(6);
 	return(ret_val);
 }
 /**
@@ -1092,7 +1173,7 @@ void CAP1293_WriteRegister(uint8_t register_address, uint8_t register_data)
 	
 	reg_val[0] = register_address;
 	reg_val[1] = register_data;
-	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_val, 2U, DRV_TOUT) != HAL_OK)              Error_Handler();
+	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_val, 2U, DRV_TOUT) != HAL_OK)              Error_Handler(7);
 }
 /* USER CODE END 4 */
 
@@ -1100,13 +1181,14 @@ void CAP1293_WriteRegister(uint8_t register_address, uint8_t register_data)
   * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
-void Error_Handler(void)
+void Error_Handler(uint8_t call)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
+      HAL_NVIC_SystemReset();
   }
   /* USER CODE END Error_Handler_Debug */
 }

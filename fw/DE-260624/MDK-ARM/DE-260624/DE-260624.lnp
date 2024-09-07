@@ -21,7 +21,7 @@
 "de-260624\stm32f0xx_hal_tim.o"
 "de-260624\stm32f0xx_hal_tim_ex.o"
 "de-260624\system_stm32f0xx.o"
---strict --scatter "DE-260624\DE-260624.sct"
+--library_type=microlib --strict --scatter "DE-260624\DE-260624.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
 --list "DE-260624.map" -o DE-260624\DE-260624.axf

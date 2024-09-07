@@ -589,8 +589,8 @@ uint8_t readRegister(CAP129n_Register reg)
 {
     uint8_t ret_val, register_address = reg;
 	
-	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, &register_address, 1U, DRV_TOUT) != HAL_OK)    Error_Handler();
-	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &ret_val, 1U, DRV_TOUT) != HAL_OK)               Error_Handler();
+	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, &register_address, 1U, DRV_TOUT) != HAL_OK)    Error_Handler(8);
+	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, &ret_val, 1U, DRV_TOUT) != HAL_OK)               Error_Handler(8);
 	return(ret_val);
 }
 
@@ -602,8 +602,8 @@ void readRegisters(CAP129n_Register reg, uint8_t *buffer, uint8_t len)
 {
     uint8_t register_address = reg;
 	
-	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, &register_address, 1U, DRV_TOUT) != HAL_OK)   Error_Handler();
-	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, buffer, len, DRV_TOUT) != HAL_OK)               Error_Handler();
+	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, &register_address, 1U, DRV_TOUT) != HAL_OK)   Error_Handler(9);
+	if(HAL_I2C_Master_Receive(&hi2c1, CAP1293_READ, buffer, len, DRV_TOUT) != HAL_OK)               Error_Handler(9);
 }
 
 /* WRITE TO A SINGLE REGISTER
@@ -624,5 +624,5 @@ void writeRegisters(CAP129n_Register reg, uint8_t *buffer, uint8_t len)
 	
 	reg_val[0] = reg;
 	memcpy(&reg_val[1], buffer, len);
-	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_val, len+1, DRV_TOUT) != HAL_OK)          Error_Handler();
+	if(HAL_I2C_Master_Transmit(&hi2c1, CAP1293_WRITE, reg_val, len+1, DRV_TOUT) != HAL_OK)          Error_Handler(10);
 }
