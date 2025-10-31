@@ -31,4 +31,4 @@ Trenutno repozitorij nema odabranu licencu.
 Autor: [eldar6776](https://github.com/eldar6776)
 
 ---
-*Ovaj README je automatski generiran na temelju podataka iz GitHub repozitorija.*
+
